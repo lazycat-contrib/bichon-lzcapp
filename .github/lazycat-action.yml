@@ -1,0 +1,43 @@
+version: 1
+
+project:
+  root: .
+  build_config: lzc-build.yml
+  package_file: package.yml
+  output: dist/bichon.lpk
+  target_arch: amd64
+
+update:
+  strategy: publish
+  allow_downgrade: false
+  version_source:
+    type: image
+    image: app
+
+build:
+  toolchains: []
+  run_buildscript: false
+
+images:
+  # 镜像模式（delivery.mode=mirror）：只读校验，把 manifest 里的镜像改写成加速地址
+  # （Docker Hub → docker.1ms.run），不把镜像搬到懒猫镜像源；因此也不能上官方商店。
+  - id: app
+    target: service
+    service: bichon
+    source: rustmailer/bichon
+    channel: stable
+    sort: semver
+    # 只跟三段式正式版（排除 2.0.1-alpha.1 这类预发布与 latest）
+    tag_regex: '^[0-9]+\.[0-9]+\.[0-9]+$'
+    delivery:
+      mode: mirror
+      require_digest_match: true
+
+stores:
+  official:
+    enabled: false
+  private:
+    enabled: true
+    skip_if_version_exists: true
+    name: Bichon
+    summary: "Bichon 懒猫微服打包：Rust 邮箱归档器（IMAP 同步 + WebUI 检索），只收不发，数据留在自己盒子上。"

@@ -1,0 +1,44 @@
+application:
+  subdomain: bichon
+  multi_instance: false
+  upstreams:
+    - location: /
+      backend: http://bichon:15630
+  # 入口直接放行（不过微服账号）：应用自带 REST API 与 WebUI 鉴权
+  public_path:
+    - /
+services:
+  bichon:
+    # 镜像模式：Action 只读校验后把这行改写成加速地址（Docker Hub → docker.1ms.run）
+    # upstream: rustmailer/bichon:2.1.1（= latest 的同一份 digest）
+    image: rustmailer/bichon:2.1.1
+    # 镜像是 scratch 风格（默认 root）；平台建的 /lzcapp/var/bichon 属主也是 root，
+    # 所以以 root 起即可读写数据目录（不用 run_as，也不用入口脚本 chown）
+    user: root
+    environment:
+      BICHON_ROOT_DIR: /data
+      # 加密已存邮箱凭据（IMAP 密码、OAuth token）的静态密钥：自动生成并固定，
+      # 清空 /lzcapp/var/bichon 会让已存的凭据解不开
+      BICHON_ENCRYPT_PASSWORD: '{{ stable_secret "bichon#encrypt_password" }}'
+      BICHON_LOG_LEVEL: info
+    healthcheck:
+      # 镜像里带 curl（它自带的 HEALTHCHECK 也是打这个端点）
+      test:
+        - CMD-SHELL
+        - curl -fsS http://127.0.0.1:15630/api/status || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    binds:
+      - /lzcapp/var/bichon:/data
+usage: |
+  Bichon 是 Rust 写的邮箱归档器：把各个邮箱（IMAP，含 OAuth）的邮件同步到本地归档，
+  自带 WebUI 搜索、浏览附件；它只收不发，不是邮件客户端。
+
+  【数据】
+  归档库、索引与邮箱凭据都在 /lzcapp/var/bichon，升级不丢。
+  加密凭据的密钥由本应用自动生成并固定——**别删数据目录**，否则已存的邮箱密码要重新填。
+
+  【收信】
+  默认只做归档同步（去各邮箱 IMAP 拉取，出站即可）；可选的 SMTP 收信端口本包没有放出。
