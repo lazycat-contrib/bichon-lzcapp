@@ -10,8 +10,8 @@ application:
 services:
   bichon:
     # 镜像模式：Action 只读校验后把这行改写成加速地址（Docker Hub → docker.1ms.run）
-    # upstream: rustmailer/bichon:2.1.1
-    image: docker.1ms.run/rustmailer/bichon:2.1.1
+    # upstream: rustmailer/bichon:2.2.0
+    image: docker.1ms.run/rustmailer/bichon:2.2.0
     # 镜像是 scratch 风格（默认 root）；平台建的 /lzcapp/var/bichon 属主也是 root，
     # 所以以 root 起即可读写数据目录（不用 run_as，也不用入口脚本 chown）
     user: root
