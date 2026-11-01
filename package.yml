@@ -1,5 +1,5 @@
 package: cloud.lazycat.app.bichon
-version: 2.2.0
+version: 2.3.0
 name: Bichon
 description: Bichon – a lightweight, high-performance Rust email archiver with WebUI. Syncs IMAP mailboxes (incl. OAuth) into a local, searchable archive; receive-only, never sends. AGPL-3.0.
 min_os_version: 1.5.0
